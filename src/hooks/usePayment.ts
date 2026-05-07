@@ -22,7 +22,7 @@ export const usePayment = () => {
     const controller = new AbortController();
 
     const timeout = setTimeout(() => {
-      controller.abort();
+      controller.abort(new DOMException("Timeout", "AbortError"));
     }, 6000);
 
     try {
@@ -48,6 +48,7 @@ export const usePayment = () => {
           id: payload.transactionId,
           amount: payload.amount,
           currency: payload.currency,
+          cardType: payload.cardType,
           status: "FAILED",
           timestamp: new Date().toISOString(),
           attempts: existingAttempts,
@@ -63,6 +64,7 @@ export const usePayment = () => {
         id: payload.transactionId,
         amount: payload.amount,
         currency: payload.currency,
+        cardType: payload.cardType,
         status: "SUCCESS",
         timestamp: new Date().toISOString(),
         attempts: existingAttempts,
@@ -77,10 +79,13 @@ export const usePayment = () => {
         id: payload.transactionId,
         amount: payload.amount,
         currency: payload.currency,
+        cardType: payload.cardType,
         status: "TIMEOUT",
         timestamp: new Date().toISOString(),
         attempts: existingAttempts,
       });
+    } finally {
+      clearTimeout(timeout);
     }
   };
 

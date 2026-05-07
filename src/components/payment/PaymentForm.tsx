@@ -1,163 +1,197 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-
-import { paymentSchema } from "@/utils/validators";
-
-import { detectCardType, formatCardNumber, formatExpiry } from "@/utils/card";
-
-import CardPreview from "./CardPreview";
+import { formatCardNumber, formatExpiry } from "@/utils/card";
 
 import CardTypeBadge from "./CardTypeBadge";
-import { FormValues } from "@/types/payment";
+
+import { CardType, FormValues } from "@/types/payment";
+import { UseFormReturn } from "react-hook-form";
 
 interface Props {
+  form: UseFormReturn<FormValues>;
   onSubmit: (data: FormValues) => void | Promise<void>;
   disabled?: boolean;
+  cardType: CardType;
 }
-
-export default function PaymentForm({ onSubmit, disabled }: Props) {
+export default function PaymentForm({
+  form,
+  onSubmit,
+  disabled,
+  cardType,
+}: Props) {
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors, isValid },
-  } = useForm<FormValues>({
-    resolver: zodResolver(paymentSchema),
-    mode: "onChange",
-    defaultValues: {
-      currency: "INR",
-    },
-  });
-
-  const cardNumber = watch("cardNumber");
-
-  const cardHolder = watch("cardHolder");
-
-  const expiry = watch("expiry");
-
-  const cardType = detectCardType(cardNumber || "");
+  } = form;
 
   return (
-    <div className="space-y-6">
-      <CardPreview
-        cardNumber={cardNumber}
-        cardHolder={cardHolder}
-        expiry={expiry}
-      />
+    <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+      <div>
+        <label
+          htmlFor="cardHolder"
+          className="mb-2 block text-sm font-medium text-slate-700"
+        >
+          Cardholder Name
+        </label>
 
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label className="mb-1 block">Cardholder Name</label>
+        <input
+          {...register("cardHolder")}
+          id="cardHolder"
+          placeholder="John Doe"
+          aria-describedby={errors.cardHolder ? "cardHolder-error" : undefined}
+          className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-[#635BFF] focus:bg-white"
+        />
 
-          <input
-            {...register("cardHolder")}
-            className="w-full rounded-lg border p-3"
-          />
+        {errors.cardHolder && (
+          <p id="cardHolder-error" className="text-sm text-red-500">
+            {errors.cardHolder.message}
+          </p>
+        )}
+      </div>
 
-          {errors.cardHolder && (
-            <p className="text-sm text-red-500">{errors.cardHolder.message}</p>
-          )}
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <label
+            htmlFor="cardNumber"
+            className="text-sm font-medium text-slate-700"
+          >
+            Card Number
+          </label>
+
+          <CardTypeBadge type={cardType} />
         </div>
 
-        <div>
-          <div className="mb-1 flex items-center justify-between">
-            <label>Card Number</label>
-
-            <CardTypeBadge type={cardType} />
-          </div>
-
-          <input
-            {...register("cardNumber")}
-            maxLength={19}
-            onChange={(e) => {
+        <input
+          className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-[#635BFF] focus:bg-white"
+          {...register("cardNumber", {
+            onChange: (e) => {
               setValue("cardNumber", formatCardNumber(e.target.value), {
                 shouldValidate: true,
               });
-            }}
-            className="w-full rounded-lg border p-3"
+            },
+          })}
+          maxLength={19}
+          id="cardNumber"
+          placeholder="•••• •••• •••• ••••"
+          aria-describedby={errors.cardNumber ? "cardNumber-error" : undefined}
+        />
+
+        {errors.cardNumber && (
+          <p id="cardNumber-error" className="text-sm text-red-500">
+            {errors.cardNumber.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label
+            htmlFor="expiry"
+            className="mb-2 block text-sm font-medium text-slate-700"
+          >
+            Expiry Date
+          </label>
+
+          <input
+            placeholder="MM/YY"
+            className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-[#635BFF] focus:bg-white"
+            {...register("expiry", {
+              onChange: (e) => {
+                setValue("expiry", formatExpiry(e.target.value), {
+                  shouldValidate: true,
+                });
+              },
+            })}
+            id="expiry"
+            aria-describedby={errors.expiry ? "expiry-error" : undefined}
           />
 
-          {errors.cardNumber && (
-            <p className="text-sm text-red-500">{errors.cardNumber.message}</p>
+          {errors.expiry && (
+            <p id="expiry-error" className="text-sm text-red-500">
+              {errors.expiry.message}
+            </p>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block">Expiry</label>
+        <div>
+          <label
+            htmlFor="cvv"
+            className="mb-2 block text-sm font-medium text-slate-700"
+          >
+            CVV
+          </label>
 
-            <input
-              {...register("expiry")}
-              placeholder="MM/YY"
-              className="w-full rounded-lg border p-3"
-              onChange={(e) => {
-                setValue("expiry", formatExpiry(e.target.value));
-              }}
-            />
+          <input
+            {...register("cvv")}
+            id="cvv"
+            placeholder="CVV"
+            maxLength={cardType === "AMEX" ? 4 : 3}
+            className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-[#635BFF] focus:bg-white"
+            aria-describedby={errors.cvv ? "cvv-error" : undefined}
+          />
 
-            {errors.expiry && (
-              <p className="text-sm text-red-500">{errors.expiry.message}</p>
-            )}
-          </div>
+          {errors.cvv && (
+            <p id="cvv-error" className="text-sm text-red-500">
+              {errors.cvv.message}
+            </p>
+          )}
+        </div>
+      </div>
 
-          <div>
-            <label className="mb-1 block">CVV</label>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label
+            htmlFor="amount"
+            className="mb-2 block text-sm font-medium text-slate-700"
+          >
+            Amount
+          </label>
 
-            <input
-              {...register("cvv")}
-              maxLength={cardType === "AMEX" ? 4 : 3}
-              className="w-full rounded-lg border p-3"
-            />
-
-            {errors.cvv && (
-              <p className="text-sm text-red-500">{errors.cvv.message}</p>
-            )}
-          </div>
+          <input
+            id="amount"
+            type="number"
+            placeholder="0"
+            {...register("amount", {
+              valueAsNumber: true,
+            })}
+            aria-describedby={errors.amount ? "amount-error" : undefined}
+            className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-[#635BFF] focus:bg-white"
+          />
+          {errors.amount && (
+            <p id="amount-error" className="text-sm text-red-500">
+              {errors.amount.message}
+            </p>
+          )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block">Amount</label>
+        <div>
+          <label
+            htmlFor="currency"
+            className="mb-2 block text-sm font-medium text-slate-700"
+          >
+            Currency
+          </label>
 
-            <input
-              type="number"
-              {...register("amount", {
-                valueAsNumber: true,
-              })}
-              className="w-full rounded-lg border p-3"
-            />
-
-            {errors.amount && (
-              <p className="text-sm text-red-500">{errors.amount.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1 block">Currency</label>
-
-            <select
-              {...register("currency")}
-              className="w-full rounded-lg border p-3"
-            >
-              <option value="INR">INR</option>
-
-              <option value="USD">USD</option>
-            </select>
-          </div>
+          <select
+            id="currency"
+            {...register("currency")}
+            className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-[#635BFF] focus:bg-white"
+          >
+            <option>USD</option>
+            <option>INR</option>
+          </select>
         </div>
+      </div>
 
-        <button
-          type="submit"
-          disabled={!isValid || disabled}
-          className="w-full rounded-lg bg-black p-3 text-white disabled:opacity-50"
-        >
-          Pay Now
-        </button>
-      </form>
-    </div>
+      <button
+        type="submit"
+        disabled={!isValid || disabled}
+        className="w-full rounded-xl bg-[#635BFF] py-4 text-lg font-semibold text-white transition hover:scale-[1.01] hover:bg-[#554BFF]"
+      >
+        Pay
+      </button>
+    </form>
   );
 }

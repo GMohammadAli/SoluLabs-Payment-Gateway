@@ -18,7 +18,8 @@ export interface FormValues {
 
 export type PaymentPayload = FormValues & {
   transactionId: string;
-}; 
+  cardType: CardType;
+};
 
 export type Currency = "INR" | "USD";
 
@@ -27,6 +28,7 @@ export interface Transaction {
   amount: number;
   currency: Currency;
   status: PaymentStatus;
+  cardType: string;
   timestamp: string;
   attempts: number;
   failureReason?: string;

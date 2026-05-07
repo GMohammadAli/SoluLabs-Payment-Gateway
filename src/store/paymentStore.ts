@@ -48,7 +48,7 @@ export const usePaymentStore = create<PaymentStore>()(
         }),
     }),
     {
-      name: "payment-history",
+      name: "payment-history", //stores payment data in browser local storage
       partialize: (state) => ({
         transactions: state.transactions,
       }),

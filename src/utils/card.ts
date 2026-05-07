@@ -10,7 +10,7 @@ const cleanCardNumber = (value: string): string => {
 /**
  * Format card number with spaces
  *
- * VISA / MASTERCARD:
+ * VISA / MASTERCARD / UNKNOWN:
  * 4242 4242 4242 4242
  *
  * AMEX:
@@ -150,7 +150,7 @@ export const formatExpiry = (value: string): string => {
 /**
  * Validate CVV
  *
- * VISA / MASTERCARD => 3 digits
+ * VISA / MASTERCARD / UNKNOWN => 3 digits
  * AMEX => 4 digits
  */
 export const validateCVV = (
