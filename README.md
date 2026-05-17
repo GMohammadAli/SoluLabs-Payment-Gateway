@@ -1,4 +1,4 @@
-# SoluLabs Payments Gateway
+# Stripe Payments Gateway
 
 A mock Payment Gateway built with Next.js App Router and TypeScript that simulates real-world payment processing flows including retries, timeouts, transaction persistence, and idempotency handling.
 
